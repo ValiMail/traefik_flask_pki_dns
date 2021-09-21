@@ -1,0 +1,5 @@
+tls:
+  options:
+    default:
+      clientAuth:
+        clientAuthType: RequireAnyClientCert

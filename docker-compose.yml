@@ -1,0 +1,66 @@
+version: "3"
+services:
+  reverse_proxy:
+    container_name: reverse_proxy
+    build:
+      context: .
+      dockerfile: dockerfiles/traefik.Dockerfile
+    command:
+      - --log.level=INFO # <== Setting the level of the logs from traefik
+      - --providers.docker=true # <== Enabling docker as the provider for traefik
+      - --providers.docker.exposedbydefault=false # <== Don't expose every container to traefik, only expose enabled ones
+      - --providers.docker.network=traefik_backend # <== Operate on the docker network named traefik_backend
+      - --entrypoints.web-secured.address=:443 # <== Defining an entrypoint for https on port :443 named web-secured
+      - --certificatesresolvers.myresolver.acme.email=ash.wilson@valimail.com
+      - --certificatesresolvers.myresolver.acme.storage=/etc/traefik/tls/acme.json
+      # - --certificatesresolvers.myresolver.acme.httpchallenge=true
+      # - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --accesslog=true
+      - --entrypoints.web-secured.http.middlewares=test-passtlsclientcert@docker
+      - --providers.file.directory=/etc/traefik/
+    ports:
+      - "443:443"
+    environment: 
+      - XDG_CONFIG_HOME=/var/traefik_conf
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - traefik_tls:/etc/traefik/tls/
+    networks:
+      - "traefik_backend"
+  echo:
+    container_name: echo
+    image: mendhak/http-https-echo:18
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.echo.rule=Host(`localhost`)"
+      - "traefik.http.routers.echo.entrypoints=web-secured"
+      - "traefik.http.routers.echo.tls=true"
+      - "traefik.http.routers.echo.tls.options=tls@file"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.pem=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.notafter=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.notbefore=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.sans=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.serialnumber=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.subject.commonname=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.subject.country=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.subject.domaincomponent=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.subject.locality=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.subject.organization=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.subject.province=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.subject.serialnumber=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.issuer.commonname=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.issuer.country=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.issuer.domaincomponent=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.issuer.locality=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.issuer.organization=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.issuer.province=true"
+      - "traefik.http.middlewares.test-passtlsclientcert.passtlsclientcert.info.issuer.serialnumber=true"
+    networks:
+      - "traefik_backend"
+
+
+networks:
+  traefik_backend:
+volumes:
+  traefik_tls:
