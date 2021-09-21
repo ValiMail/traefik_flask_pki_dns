@@ -28,9 +28,14 @@ services:
       - traefik_tls:/etc/traefik/tls/
     networks:
       - "traefik_backend"
-  echo:
-    container_name: echo
-    image: mendhak/http-https-echo:18
+
+  flask:
+    container_name: flask
+    build:
+      context: .
+      dockerfile: ./dockerfiles/flask.Dockerfile
+    expose:
+      - 8080
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.echo.rule=Host(`localhost`)"

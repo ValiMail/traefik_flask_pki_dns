@@ -1,0 +1,9 @@
+build-base
+expect
+mariadb-connector-c-dev
+python3-dev
+openssl-dev
+libffi-dev
+linux-headers
+pcre-dev
+tree
