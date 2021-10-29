@@ -4,24 +4,46 @@ PKI + DNS client authentication using Traefik and Flask.
 
 ## What it does
 
-Traefik supports mutual TLS authentication, with no binding to a particular CA. 
+The client attempts to POST to the API endpoint with `dane_id` and `message` fields populated.
 
-If the client can prove possession of the private key, the TLS client will be authenticated by Traefik.
+The API endpoint requires any client certificate for mutual authentication.
 
-Traefik forwards the `HTTP_X_FORWARDED_TLS_CLIENT_CERT` header to uwsgi, which fronts the Flask application.
+After successful mTLS authentication, Traefik forwards the `HTTP_X_FORWARDED_TLS_CLIENT_CERT` header to uwsgi, together with the POST data.
 
-The `HTTP_X_FORWARDED_TLS_CLIENT_CERT` header is decoded and parsed into a certificate, which is then parsed by the application, which checks the following:
+Flask (sitting behind uwsgi) compares the `dane_id` name against a list of allowed host names and domains.
 
-* Does the certificate have at least one dNSName in the subjectAltName of the certificate?
-* Does one of the dNSName values align with a user in the client ACL? (auth.py, line 39)
-* Does the presented certificate match the DANE record for the aligned dNSName?
+Next, flask parses the `HTTP_X_FORWARDED_TLS_CLIENT_CERT` field into an x.509 certificate and attempts to authenticate the presented certificate against the TLSA record for `dane_id`.
 
-If all three checks pass, the identity is validated. DANE(ish) validation happens live. No certs are cached in the application itself. Revocation happens at the speed of TTL.
+If the checks pass, the identity is validated. DANE validation happens live. No certs are cached in the application itself. Revocation happens at the speed of TTL.
 
-## Opportunities for improvement
+## Setup
 
-* [ ] When dealing with the potential multiplicity of dNSName members of the subjectAltName, we could have a dNSName that is DANE-valid for an identity right next to one that is not. We could also have multiple valid names, and only the first one would be authenticated. It would be better to have a POST URL for authentication which accepts a DANE DNS name from the client, which is then used as the anchoring name for the certificate that we wish to verify, which gets validated by Traefik and passed through in the `HTTP_X_FORWARDED_TLS_CLIENT_CERT` header.
-* [ ] Integrate with the Validev policy engine for representing roles and members.
-* [ ] Establish a client session and sort out different routing rules (in Traefik) for TLS auth. Should not need TLS authentication for every page. This is for client browsers.
-* [ ] Establish an API interaction pattern, with one auth per interaction.
-* [ ] Establish an API interaction pattern for bearer token issuance.
+* Clone this repository on a system with a public IP address.
+* Copy the `.env.example` file to `.env` and complete the settings.
+  * Note: `BASE_DNS_NAME` is a DNS name under your control. Create an A record to point to the instance hosting this application. Create two CNAME records, one for `api.${BASE_DNS_NAME}` and another for `portal.${BASE_DNS_NAME}`, and point them both to `${BASE_DNS_NAME}`
+* Install `docker-compose` and all dependencies.
+* run `docker-compose up -d && docker-compose logs-f`
+
+## Operation
+
+### Post a message
+
+```bash
+curl -X POST \
+    -d "dane_id=${VALID_DANE_ID}&message=${SOME_MESSAGE}" \
+    --cert cert.pem \
+    --key privkey.pem \
+    https://api.${BASE_DNS_NAME}/new`
+
+```
+
+### Confirmation
+
+```bash
+curl https://portal.${BASE_DNS_NAME}/messages
+
+```
+
+## TODO
+
+* [ ] Set smart TLS options (versions, cipher suites, etc)

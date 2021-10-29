@@ -7,6 +7,6 @@ Flask-Script==2.0.6
 flask-wtf
 dane-discovery
 python-dotenv
-mysqlclient
 Werkzeug
 uwsgi
+SQLAlchemy-Utils

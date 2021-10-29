@@ -1,9 +1,6 @@
-build-base
-expect
-mariadb-connector-c-dev
+build-essential
 python3-dev
-openssl-dev
 libffi-dev
-linux-headers
-pcre-dev
-tree
+rustc
+cargo
+bash

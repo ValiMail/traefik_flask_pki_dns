@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Authenticated messages</title>
+</head>
+<body>
+    <div>
+        <h1>Messages</h1>
+      
+        <table>
+          <tr>
+            <td>Time</td>
+            <td>Client</td>
+            <td>Message</td>
+          </tr>
+        {% for m in messages %}
+          <tr>
+            <td>{{ m.tstamp }}</td>
+            <td>{{ m.source }}</td>
+            <td>{{ m.body }}</td>
+          </tr>
+        {% endfor %}
+        </table>
+      </div>
+</body>

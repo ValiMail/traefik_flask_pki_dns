@@ -13,13 +13,14 @@ class Config:
 class DevelopmentConfig(Config):
     """Dev config."""
 
-    SQLALCHEMY_DATABASE_URI = "sqlite:///db.sqlite"
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    message_db_path = os.getenv("MESSAGE_DB_PATH", "/messaging")
+    sqlalchemy_file = os.path.join(message_db_path, "db.sqlite")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///{}".format(sqlalchemy_file)
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = True
 
 
 class ProductionConfig(Config):
     """Production configuration."""
 
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    SQLALCHEMY_DATABASE_URI = os.getenv("DB_URI")

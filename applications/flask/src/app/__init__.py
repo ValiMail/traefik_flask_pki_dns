@@ -2,41 +2,34 @@
 import os
 
 from flask import Flask
-import flask_login
-from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .config import DevelopmentConfig
-from .config import ProductionConfig
+from .weblib.config import DevelopmentConfig
 
 db = SQLAlchemy()
-csrf = CSRFProtect()
-# migrate = Migrate()
 
+api_hostname = "api.{}".format(os.getenv("BASE_DNS_NAME"))
+portal_hostname = "portal.{}".format(os.getenv("BASE_DNS_NAME"))
 
 def create_app():
     """Create the app."""
     app = Flask(__name__)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1)
-    if os.getenv("PRODUCTION_ENV"):
-        app.config.from_object(ProductionConfig())
-    else:
-        app.config.from_object(DevelopmentConfig())
-    app.secret_key = os.getenv("FLASK_SECRET_KEY", "helloworldly")
-    # db.init_app(app)
-    csrf.init_app(app)
-    # migrate.init_app(app, db)
-    # login_manager = flask_login.LoginManager()
-    # login_manager.login_view = "auth.login"
-    # login_manager.init_app(app)
+    conf = DevelopmentConfig
+    app.config.from_object(conf())
+    app.secret_key = os.getenv("FLASK_SECRET_KEY")
+    db.init_app(app)
 
-    # from .models import User
-    # @login_manager.user_loader
-    # def load_user(user_id):
-    #     return User.query.get(int(user_id))
+    from .entry import entry as entry_blueprint
+    app.register_blueprint(entry_blueprint)
 
-    from .auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint)
-    
+    if not os.path.exists(conf.message_db_path):
+        print("Creating DB directory: {}".format(conf.message_db_path))
+        os.makedirs(conf.message_db_path)
+    if not os.path.isfile(conf.sqlalchemy_file):
+        print(dir(conf))
+        print("Creating DB {}".format(conf.SQLALCHEMY_DATABASE_URI))
+        with app.app_context():
+            db.create_all(app=app)
+            db.session.commit()
+            db.session.close()
     return app
