@@ -22,7 +22,7 @@ entry = Blueprint("entry", __name__)
 def entries_new_post():
     """Create new entry."""
     if not request.headers['Host'] == "api.{}".format(os.getenv("BASE_DNS_NAME")):
-        return abort(404, "Not on this host, bro ({} is not {})".format(
+        return abort(404, "A whole bunch of nope for you. ({} is not {})".format(
                          request.headers['Host'], 
                          "api.{}".format(os.getenv("BASE_DNS_NAME"))))
     cert = request.environ["HTTP_X_FORWARDED_TLS_CLIENT_CERT"]
@@ -54,7 +54,7 @@ def entries_new_post():
 def entries_read():
     """Read all entries."""
     if not request.headers['Host'] == "portal.{}".format(os.getenv("BASE_DNS_NAME")):
-        return abort(404, "Not on this host, bro ({})".format(request.headers['Host']))
+        return abort(404, "Sorry, buddy. You're not in the list. ({})".format(request.headers['Host']))
     messages = Entry.query.all()
     return render_template("all_messages.html", messages=messages)
 
