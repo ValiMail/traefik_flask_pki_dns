@@ -1,6 +1,7 @@
 """Validation functions."""
 
 import base64
+import os
 
 from dane_discovery.identity import Identity
 from dane_discovery.pki import PKI
@@ -67,7 +68,8 @@ class Validator:
         except ValueError as err:
             msg = "Unable to parse {} into an x509 object ({})".format(cert, err)
             raise ValueError(msg)
-        identity = Identity(dane_identifier)
+        resolver_override = os.getenv("RESOLVER_OVERRIDE", "1.1.1.1")
+        identity = Identity(dane_identifier, None, resolver_override)
         status, reason = identity.validate_certificate(der_cert)
         if status is True:
             return None

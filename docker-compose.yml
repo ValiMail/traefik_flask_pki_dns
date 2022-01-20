@@ -38,6 +38,7 @@ services:
       - ALLOW_DOMAINS=${ALLOW_DOMAINS}
       - ALLOW_HOSTS=${ALLOW_HOSTS}
       - BASE_DNS_NAME=${BASE_DNS_NAME}
+      - RESOLVER_OVERRIDE=${RESOLVER_OVERRIDE}
     expose:
       - 8080
     labels:

@@ -75,11 +75,12 @@ def authenticate_dane(dane_id, cert):
     except ValueError:
         reason = "Can't parse x509: {}".format(clean_cert)
         return False, reason
-    identity = Identity(dane_id)
+    resolver_override = os.getenv("RESOLVER_OVERRIDE", "1.1.1.1")
+    identity = Identity(dane_id, None, resolver_override)
     status, reason = identity.validate_certificate(der_cert)
     if status is True:
         return True, ""
-    reason = "DANE match for {} failed!".format(reason)
+    reason = "DANE match for {} failed: {}!".format(dane_id, reason)
     return False, reason
 
 
