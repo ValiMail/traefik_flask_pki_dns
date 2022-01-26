@@ -30,7 +30,7 @@ If DANE checks pass, the identity is validated. DANE validation happens live. No
       * Provision a CNAME record for `api.machine.mydomain.example`, which points to `machine.mydomain.example`
       * Provision a CNAME record for `portal.machine.mydomain.example`, which points to `machine.mydomain.example`
 * run `docker-compose up -d && docker-compose logs -f`
-* Open a browser and navigate to <https://portal.${BASE_DNS_NAME}>. Authenticated messages will appear on this page.
+* Open a browser and navigate to <https://portal.${BASE_DNS_NAME}/messages>. Authenticated messages will appear on this page.
 
 ## Operation
 
@@ -57,7 +57,7 @@ curl https://portal.${BASE_DNS_NAME}/messages
 
 ```
 
-Or browse to <https://portal.${BASE_DNS_NAME}>
+Or browse to <https://portal.${BASE_DNS_NAME}/messages>
 
 ## TODO
 
